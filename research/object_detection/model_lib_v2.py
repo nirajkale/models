@@ -593,23 +593,18 @@ def train_loop(
           lambda: global_step % num_steps_per_iteration == 0):
         # Load a fine-tuning checkpoint.
         if train_config.fine_tune_checkpoint:
-          variables_helper.ensure_checkpoint_supported(
-              train_config.fine_tune_checkpoint, fine_tune_checkpoint_type,
-              model_dir)
+          variables_helper.ensure_checkpoint_supported(train_config.fine_tune_checkpoint, fine_tune_checkpoint_type,model_dir)
           load_fine_tune_checkpoint(
               detection_model, train_config.fine_tune_checkpoint,
               fine_tune_checkpoint_type, fine_tune_checkpoint_version,
               train_config.run_fine_tune_checkpoint_dummy_computation,
               train_input, unpad_groundtruth_tensors)
 
-        ckpt = tf.compat.v2.train.Checkpoint(
-            step=global_step, model=detection_model, optimizer=optimizer)
-
+        ckpt = tf.compat.v2.train.Checkpoint(step=global_step, model=detection_model, optimizer=optimizer)
         manager_dir = get_filepath(strategy, model_dir)
         if not strategy.extended.should_checkpoint:
           checkpoint_max_to_keep = 1
-        manager = tf.compat.v2.train.CheckpointManager(
-            ckpt, manager_dir, max_to_keep=checkpoint_max_to_keep)
+        manager = tf.compat.v2.train.CheckpointManager(ckpt, manager_dir, max_to_keep=checkpoint_max_to_keep)
 
         # We use the following instead of manager.latest_checkpoint because
         # manager_dir does not point to the model directory when we are running

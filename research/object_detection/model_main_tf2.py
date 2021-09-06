@@ -64,6 +64,9 @@ flags.DEFINE_integer(
     'MirroredStrategy.')
 flags.DEFINE_integer(
     'checkpoint_every_n', 1000, 'Integer defining how often we checkpoint.')
+flags.DEFINE_integer(
+    'checkpoint_max_to_keep', 7, 'Integer defining how many checkpoints to keep')
+flags.DEFINE_bool('eval_continuously', True, 'Whether to wait & evaluate latest checkpoint continuously or evaluate all checkpoint only once')
 flags.DEFINE_boolean('record_summaries', True,
                      ('Whether or not to record summaries defined by the model'
                       ' or the training pipeline. This does not impact the'
@@ -79,16 +82,18 @@ def main(unused_argv):
   tf.config.set_soft_device_placement(True)
 
   if FLAGS.checkpoint_dir:
-    # model_lib_v2.eval_continuously(
-    #     pipeline_config_path=FLAGS.pipeline_config_path,
-    #     model_dir=FLAGS.model_dir,
-    #     train_steps=FLAGS.num_train_steps,
-    #     sample_1_of_n_eval_examples=FLAGS.sample_1_of_n_eval_examples,
-    #     sample_1_of_n_eval_on_train_examples=(
-    #         FLAGS.sample_1_of_n_eval_on_train_examples),
-    #     checkpoint_dir=FLAGS.checkpoint_dir,
-    #     wait_interval=300, timeout=FLAGS.eval_timeout)
-    model_lib_v2.eval_all(
+    if FLAGS.eval_continuously:
+      model_lib_v2.eval_continuously(
+          pipeline_config_path=FLAGS.pipeline_config_path,
+          model_dir=FLAGS.model_dir,
+          train_steps=FLAGS.num_train_steps,
+          sample_1_of_n_eval_examples=FLAGS.sample_1_of_n_eval_examples,
+          sample_1_of_n_eval_on_train_examples=(
+              FLAGS.sample_1_of_n_eval_on_train_examples),
+          checkpoint_dir=FLAGS.checkpoint_dir,
+          wait_interval=300, timeout=FLAGS.eval_timeout)
+    else:
+      model_lib_v2.eval_all(
       pipeline_config_path=FLAGS.pipeline_config_path,
         model_dir=FLAGS.model_dir,
         train_steps=FLAGS.num_train_steps,
@@ -117,7 +122,8 @@ def main(unused_argv):
           train_steps=FLAGS.num_train_steps,
           use_tpu=FLAGS.use_tpu,
           checkpoint_every_n=FLAGS.checkpoint_every_n,
-          record_summaries=FLAGS.record_summaries)
+          record_summaries=FLAGS.record_summaries,
+          checkpoint_max_to_keep=FLAGS.checkpoint_max_to_keep)
 
 if __name__ == '__main__':
   tf.compat.v1.app.run()
